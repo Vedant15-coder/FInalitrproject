@@ -14,8 +14,16 @@ import {
   Download,
   Plus
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { 
+  AnimatedCard, 
+  AnimatedButton, 
+  AnimatedIcon, 
+  AnimatedBadge,
+  AnimatedStagger,
+  PageTransition
+} from '../components/AnimatedComponents';
 
 const Products = () => {
   const { hasPermission } = useAuth();
@@ -168,246 +176,352 @@ const Products = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Products</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your product catalog and inventory
-          </p>
-        </div>
-        
-        {hasPermission('write') && (
-          <div className="flex items-center space-x-3">
-            {hasPermission('export') && (
-              <button className="btn-secondary">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </button>
-            )}
-            <button className="btn-primary">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Filters and Search */}
-      <div className="card">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search products, SKU, or supplier..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-10"
-              />
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="lg:w-48">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="input-field"
+    <PageTransition>
+      <div className="space-y-6">
+        {/* Header */}
+        <motion.div 
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div>
+            <motion.h1 
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
             >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort */}
-          <div className="lg:w-48">
-            <select
-              value={`${sortBy}-${sortOrder}`}
-              onChange={(e) => {
-                const [field, order] = e.target.value.split('-');
-                setSortBy(field);
-                setSortOrder(order);
-              }}
-              className="input-field"
+              Products
+            </motion.h1>
+            <motion.p 
+              className="text-gray-600 dark:text-gray-400"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
             >
-              <option value="name-asc">Name A-Z</option>
-              <option value="name-desc">Name Z-A</option>
-              <option value="quantity-desc">Stock High-Low</option>
-              <option value="quantity-asc">Stock Low-High</option>
-              <option value="price-desc">Price High-Low</option>
-              <option value="price-asc">Price Low-High</option>
-              <option value="qualityScore-desc">Quality High-Low</option>
-            </select>
+              Manage your product catalog and inventory
+            </motion.p>
           </div>
-        </div>
-
-        {/* Results Summary */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Showing {paginatedProducts.length} of {sortedProducts.length} products
-          </p>
           
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Items per page:</span>
-            <select className="input-field text-sm py-1">
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-          </div>
-        </div>
-      </div>
+          {hasPermission('write') && (
+            <motion.div 
+              className="flex items-center space-x-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              {hasPermission('export') && (
+                <AnimatedButton variant="secondary">
+                  <AnimatedIcon Icon={Download} className="mr-2" />
+                  Export
+                </AnimatedButton>
+              )}
+              <AnimatedButton variant="primary">
+                <AnimatedIcon Icon={Plus} className="mr-2" />
+                Add Product
+              </AnimatedButton>
+            </motion.div>
+          )}
+        </motion.div>
 
-      {/* Products Table */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  SKU
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Stock
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Quality
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-              {paginatedProducts.map((product, index) => (
-                <motion.tr
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+        {/* Filters and Search */}
+        <AnimatedCard delay={0.5}>
+          <motion.div 
+            className="flex flex-col lg:flex-row gap-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <motion.div
+                  animate={{ x: [0, 2, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <img 
-                        src={product.image} 
-                        alt={product.name}
-                        className="w-10 h-10 rounded-lg object-cover mr-3"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {product.name}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {product.supplier}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                    {product.sku}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {product.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {product.quantity}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    ₹{product.price.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <span className={`text-sm font-medium ${getQualityScoreColor(product.qualityScore)}`}>
-                        {product.qualityScore}%
-                      </span>
-                      <div className="ml-2 w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            product.qualityScore >= 90 ? 'bg-success-500' :
-                            product.qualityScore >= 80 ? 'bg-warning-500' : 'bg-danger-500'
-                          }`}
-                          style={{ width: `${product.qualityScore}%` }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                      {product.status.replace('-', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
-                      <button className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {hasPermission('write') && (
-                        <button className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      )}
-                      {hasPermission('delete') && (
-                        <button className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                </motion.div>
+                <motion.input
+                  type="text"
+                  placeholder="Search products, SKU, or supplier..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="input-field pl-10"
+                  whileFocus={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                />
+              </div>
+            </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                Page <span className="font-medium">{currentPage}</span> of{' '}
-                <span className="font-medium">{totalPages}</span>
-              </p>
+            {/* Category Filter */}
+            <div className="lg:w-48">
+              <motion.select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="input-field"
+                whileFocus={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category}
+                  </option>
+                ))}
+              </motion.select>
             </div>
+
+            {/* Sort */}
+            <div className="lg:w-48">
+              <motion.select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split('-');
+                  setSortBy(field);
+                  setSortOrder(order);
+                }}
+                className="input-field"
+                whileFocus={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="quantity-desc">Stock High-Low</option>
+                <option value="quantity-asc">Stock Low-High</option>
+                <option value="price-desc">Price High-Low</option>
+                <option value="price-asc">Price Low-High</option>
+                <option value="qualityScore-desc">Quality High-Low</option>
+              </motion.select>
+            </div>
+          </motion.div>
+
+          {/* Results Summary */}
+          <motion.div 
+            className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.3 }}
+          >
+            <motion.p 
+              className="text-sm text-gray-600 dark:text-gray-400"
+              animate={{ 
+                color: sortedProducts.length > 0 ? "#10b981" : "#6b7280"
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              Showing {paginatedProducts.length} of {sortedProducts.length} products
+            </motion.p>
+            
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              <span className="text-sm text-gray-600 dark:text-gray-400">Items per page:</span>
+              <motion.select 
+                className="input-field text-sm py-1"
+                whileFocus={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
               >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </motion.select>
             </div>
+          </motion.div>
+        </AnimatedCard>
+
+        {/* Products Table */}
+        <AnimatedCard delay={0.8} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <motion.thead 
+                className="bg-gray-50 dark:bg-gray-800"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9, duration: 0.3 }}
+              >
+                <tr>
+                  {['Product', 'SKU', 'Category', 'Stock', 'Price', 'Quality', 'Status', 'Actions'].map((header, index) => (
+                    <motion.th
+                      key={header}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.9 + (index * 0.05), duration: 0.2 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      {header}
+                    </motion.th>
+                  ))}
+                </tr>
+              </motion.thead>
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                <AnimatePresence mode="wait">
+                  {paginatedProducts.map((product, index) => (
+                    <motion.tr
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="table-row"
+                      whileHover={{ backgroundColor: "rgba(59, 130, 246, 0.05)" }}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <motion.img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-10 h-10 rounded-lg object-cover mr-3"
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                          />
+                          <div>
+                            <motion.div 
+                              className="text-sm font-medium text-gray-900 dark:text-white"
+                              whileHover={{ x: 5 }}
+                              transition={{ type: "spring", stiffness: 400 }}
+                            >
+                              {product.name}
+                            </motion.div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {product.supplier}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
+                        <motion.span
+                          whileHover={{ scale: 1.05 }}
+                          className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded"
+                        >
+                          {product.sku}
+                        </motion.span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {product.category}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <motion.span
+                          animate={{ 
+                            color: product.quantity === 0 ? "#ef4444" : 
+                                   product.quantity < 25 ? "#f59e0b" : "#10b981"
+                          }}
+                          className="font-semibold"
+                        >
+                          {product.quantity}
+                        </motion.span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        ₹{product.price.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className={`text-sm font-medium ${getQualityScoreColor(product.qualityScore)}`}>
+                            {product.qualityScore}%
+                          </span>
+                          <div className="ml-2 w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <motion.div 
+                              className={`h-2 rounded-full ${
+                                product.qualityScore >= 90 ? 'bg-success-500' :
+                                product.qualityScore >= 80 ? 'bg-warning-500' : 'bg-danger-500'
+                              }`}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${product.qualityScore}%` }}
+                              transition={{ duration: 1, delay: index * 0.1 }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <AnimatedBadge 
+                          color={
+                            product.status === 'in-stock' ? 'success' :
+                            product.status === 'low-stock' ? 'warning' : 'danger'
+                          }
+                          className="status-badge"
+                        >
+                          {product.status.replace('-', ' ')}
+                        </AnimatedBadge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <motion.button 
+                            className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
+                            whileHover={{ scale: 1.2, rotate: 10 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </motion.button>
+                          {hasPermission('write') && (
+                            <motion.button 
+                              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </motion.button>
+                          )}
+                          {hasPermission('delete') && (
+                            <motion.button 
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </motion.button>
+                          )}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
           </div>
-        )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <motion.div 
+              className="flex items-center justify-between px-6 py-3 border-t border-gray-200 dark:border-gray-700"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2, duration: 0.3 }}
+            >
+              <div className="flex items-center">
+                <motion.p 
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                  animate={{ x: [0, 2, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  Page <span className="font-medium">{currentPage}</span> of{' '}
+                  <span className="font-medium">{totalPages}</span>
+                </motion.p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={{ scale: 1.05, x: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  Previous
+                </motion.button>
+                <motion.button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={{ scale: 1.05, x: 2 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  Next
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatedCard>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
